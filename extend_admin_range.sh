@@ -32,7 +32,7 @@ for role in network-config-default $(knife role list | grep $ROLE_NAME_SUFFIX); 
 
 	knife role show -F json $role > roles.old/$role.json
 
-	sed "s/\"end\": \"$DHCP_RANGE_END_OLD\"/\"end\": \"$DHCP_RANGE_END_NEW\"/g;
+        sed "s/\"end\": \"$DHCP_RANGE_END_OLD\"/\"end\": \"$DHCP_RANGE_END_NEW\"/g;
              s/\"start\": \"$HOST_RANGE_START_OLD\"/\"start\": \"$HOST_RANGE_START_NEW\"/g;
              s/\"end\": \"$HOST_RANGE_END_OLD\"/\"end\": \"$HOST_RANGE_END_NEW\"/g;
              s/\"start\": \"$SWITCH_RANGE_START_OLD\"/\"start\": \"$SWITCH_RANGE_START_NEW\"/g;
@@ -44,7 +44,7 @@ for role in network-config-default $(knife role list | grep $ROLE_NAME_SUFFIX); 
         roles.old/$role.json > roles.new/$role.json
 
 	# not yet...
-	# knife role from file roles.new/$role.json
+	knife role from file roles.new/$role.json
 done
 
 
@@ -52,7 +52,7 @@ mkdir databag.old databag.new
 
 for net in admin bmc bmc_vlan; do
 
-	knife data bag show crowbar ${net}_network > databag.old/${net}_network.json
+	knife data bag show -F json crowbar ${net}_network > databag.old/${net}_network.json
 
 	sed "s/\"end\": \"$DHCP_RANGE_END_OLD\"/\"end\": \"$DHCP_RANGE_END_NEW\"/g;
              s/\"start\": \"$HOST_RANGE_START_OLD\"/\"start\": \"$HOST_RANGE_START_NEW\"/g;
@@ -66,7 +66,7 @@ for net in admin bmc bmc_vlan; do
 	databag.old/${net}_network.json > databag.new/${net}_network.json
 
 	# not yet...
-	# knife data bag from file databag.new/${net}_network.json
+	knife data bag from file crowbar databag.new/${net}_network.json
 done
 
 #diff -u roles.old roles.new | less
