@@ -26,8 +26,8 @@ BMC_VLAN_RANGE_END_NEW='192.168.177.181'
 ROLE_NAME_SUFFIX='virtual_cloud_suse_de'
 
 
+# Adjusting Roles
 mkdir roles.old roles.new
-
 for role in network-config-default $(knife role list | grep $ROLE_NAME_SUFFIX); do
 
 	knife role show -F json $role > roles.old/$role.json
@@ -48,13 +48,13 @@ for role in network-config-default $(knife role list | grep $ROLE_NAME_SUFFIX); 
 done
 
 
+# Adjusting Data Bags
 mkdir databag.old databag.new
-
 for net in admin bmc bmc_vlan; do
 
 	knife data bag show -F json crowbar ${net}_network > databag.old/${net}_network.json
 
-	sed "s/\"end\": \"$DHCP_RANGE_END_OLD\"/\"end\": \"$DHCP_RANGE_END_NEW\"/g;
+        sed "s/\"end\": \"$DHCP_RANGE_END_OLD\"/\"end\": \"$DHCP_RANGE_END_NEW\"/g;
              s/\"start\": \"$HOST_RANGE_START_OLD\"/\"start\": \"$HOST_RANGE_START_NEW\"/g;
              s/\"end\": \"$HOST_RANGE_END_OLD\"/\"end\": \"$HOST_RANGE_END_NEW\"/g;
              s/\"start\": \"$SWITCH_RANGE_START_OLD\"/\"start\": \"$SWITCH_RANGE_START_NEW\"/g;
@@ -71,3 +71,36 @@ done
 
 #diff -u roles.old roles.new | less
 #diff -u databag.old databag.new | less
+
+# Adjusting network proposal
+crowbarctl proposal show --json network default > proposal_network_old.json
+
+sed "s/\"end\": \"$DHCP_RANGE_END_OLD\"/\"end\": \"$DHCP_RANGE_END_NEW\"/g;
+     s/\"start\": \"$HOST_RANGE_START_OLD\"/\"start\": \"$HOST_RANGE_START_NEW\"/g;
+     s/\"end\": \"$HOST_RANGE_END_OLD\"/\"end\": \"$HOST_RANGE_END_NEW\"/g;
+     s/\"start\": \"$SWITCH_RANGE_START_OLD\"/\"start\": \"$SWITCH_RANGE_START_NEW\"/g;
+     s/\"end\": \"$SWITCH_RANGE_END_OLD\"/\"end\": \"$SWITCH_RANGE_END_NEW\"/g;
+     s/\"start\": \"$BMC_RANGE_START_OLD\"/\"start\": \"$BMC_RANGE_START_NEW\"/g;
+     s/\"end\": \"$BMC_RANGE_END_OLD\"/\"end\": \"$BMC_RANGE_END_NEW\"/g;
+     s/\"start\": \"$BMC_VLAN_RANGE_START_OLD\"/\"start\": \"$BMC_VLAN_RANGE_START_NEW\"/g;
+     s/\"end\": \"$BMC_VLAN_RANGE_END_OLD\"/\"end\": \"$BMC_VLAN_RANGE_END_NEW\"/g;" \
+proposal_network_old.json > proposal_network_new.json
+
+#diff -u proposal_network_old.json proposal_network_new.json | less
+crowbarctl proposal edit --file=proposal_network_new.json network default
+
+
+# Adjusting network.json
+sed "s/\"end\": \"$DHCP_RANGE_END_OLD\"/\"end\": \"$DHCP_RANGE_END_NEW\"/g;
+     s/\"start\": \"$HOST_RANGE_START_OLD\"/\"start\": \"$HOST_RANGE_START_NEW\"/g;
+     s/\"end\": \"$HOST_RANGE_END_OLD\"/\"end\": \"$HOST_RANGE_END_NEW\"/g;
+     s/\"start\": \"$SWITCH_RANGE_START_OLD\"/\"start\": \"$SWITCH_RANGE_START_NEW\"/g;
+     s/\"end\": \"$SWITCH_RANGE_END_OLD\"/\"end\": \"$SWITCH_RANGE_END_NEW\"/g;
+     s/\"start\": \"$BMC_RANGE_START_OLD\"/\"start\": \"$BMC_RANGE_START_NEW\"/g;
+     s/\"end\": \"$BMC_RANGE_END_OLD\"/\"end\": \"$BMC_RANGE_END_NEW\"/g;
+     s/\"start\": \"$BMC_VLAN_RANGE_START_OLD\"/\"start\": \"$BMC_VLAN_RANGE_START_NEW\"/g;
+     s/\"end\": \"$BMC_VLAN_RANGE_END_OLD\"/\"end\": \"$BMC_VLAN_RANGE_END_NEW\"/g;" \
+/etc/crowbar/network.json > /etc/crowbar/network_new.json
+
+#diff -Nuri /etc/crowbar/network.json /etc/crowbar/network_new.json
+mv /etc/crowbar/network_new.json /etc/crowbar/network.json
